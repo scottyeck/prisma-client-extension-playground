@@ -3,8 +3,8 @@ import { PrismaClient, Prisma } from "@prisma/client";
 const filterExtension = Prisma.defineExtension((client) => {
   const extension = {
     query: {
-      async $allOperations({ args: rawArgs, query, model, operation }) {
-        const result = await query(rawArgs);
+      async $allOperations({ args, query }) {
+        const result = await query(args);
         // TODO: this would need to consider one or many case, but for now
         // we'll just consider a many.
         if (result.length === 0) return result;
@@ -40,26 +40,12 @@ const kindExtension = Prisma.defineExtension((client) => {
 const prisma = new PrismaClient().$extends(kindExtension).$extends(filterExtension);
 
 async function main() {
-  // await prisma.user.create({
-  //   data: {
-  //     name: "Benjamin",
-  //     email: "benjamin@prisma.io",
-  //     posts: {
-  //       create: { title: "Hello World, love Benjamin" },
-  //     },
-  //     profile: {
-  //       create: { bio: "I like cats" },
-  //     },
-  //   },
-  // });
-
   const allUsers = await prisma.user.findMany({
     include: {
       posts: true,
       profile: true,
     },
   });
-  // const allPosts = await prisma.post.findMany();
   console.log(JSON.stringify(allUsers, null, 2));
 }
 
