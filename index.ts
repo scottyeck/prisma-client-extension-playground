@@ -3,11 +3,17 @@ import { PrismaClient, Prisma } from "@prisma/client";
 const filterExtension = Prisma.defineExtension((client) => {
   const extension = {
     query: {
-      user: {
-        async findMany({ model, operation, args, query }) {
-          args.where = { ...args.where, name: { not: "Alice" } };
-          return query(args);
-        },
+      async $allOperations({ args: rawArgs, query, model, operation }) {
+        const result = await query(rawArgs);
+        // TODO: this would need to consider one or many case, but for now
+        // we'll just consider a many.
+        if (result.length === 0) return result;
+        return result.filter((item) => {
+          if (item.kind === "user") {
+            return item.name !== "Alice";
+          }
+          return true;
+        });
       },
     },
   };
@@ -53,9 +59,8 @@ async function main() {
       profile: true,
     },
   });
-  const allPosts = await prisma.post.findMany();
+  // const allPosts = await prisma.post.findMany();
   console.log(JSON.stringify(allUsers, null, 2));
-  // console.log(allPosts);
 }
 
 main()
