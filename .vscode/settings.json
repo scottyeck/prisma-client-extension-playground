@@ -1,0 +1,6 @@
+{
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "prisma.fileWatcher": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
