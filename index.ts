@@ -15,18 +15,19 @@ const filterExtension = Prisma.defineExtension((client) => {
 });
 
 const kindExtension = Prisma.defineExtension((client) => {
-  const extension = {
-    result: {
-      user: {
-        kind: {
-          needs: {},
-          compute(user) {
-            return "user";
-          },
+  const filteredKeys = Object.keys(client).filter((key) => !["_", "$"].includes(key[0]));
+  const result = filteredKeys.reduce((acc, key) => {
+    acc[key] = {
+      kind: {
+        needs: {},
+        compute() {
+          return key;
         },
       },
-    },
-  };
+    };
+    return acc;
+  }, {});
+  const extension = { result };
   return client.$extends(extension);
 });
 
@@ -52,7 +53,9 @@ async function main() {
       profile: true,
     },
   });
-  console.log(allUsers);
+  const allPosts = await prisma.post.findMany();
+  console.log(JSON.stringify(allUsers, null, 2));
+  // console.log(allPosts);
 }
 
 main()
