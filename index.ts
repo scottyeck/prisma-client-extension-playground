@@ -1,6 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient().$extends({
+  query: {
+    user: {
+      async findMany({ model, operation, args, query }) {
+        args.where = { ...args.where, name: { not: "Alice" } };
+        return query(args);
+      },
+    },
+  },
+});
 
 async function main() {
   // await prisma.user.create({
