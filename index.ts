@@ -1,26 +1,47 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
-const prisma = new PrismaClient().$extends({
-  query: {
-    user: {
-      async findMany({ model, operation, args, query }) {
-        args.where = { ...args.where, name: { not: "Alice" } };
-        return query(args);
+const filterExtension = Prisma.defineExtension((client) => {
+  const extension = {
+    query: {
+      user: {
+        async findMany({ model, operation, args, query }) {
+          args.where = { ...args.where, name: { not: "Alice" } };
+          return query(args);
+        },
       },
     },
-  },
+  };
+  return client.$extends(extension);
 });
+
+const kindExtension = Prisma.defineExtension((client) => {
+  const extension = {
+    result: {
+      user: {
+        kind: {
+          needs: {},
+          compute(user) {
+            return "user";
+          },
+        },
+      },
+    },
+  };
+  return client.$extends(extension);
+});
+
+const prisma = new PrismaClient().$extends(kindExtension).$extends(filterExtension);
 
 async function main() {
   // await prisma.user.create({
   //   data: {
-  //     name: "Alice",
-  //     email: "alice@prisma.io",
+  //     name: "Benjamin",
+  //     email: "benjamin@prisma.io",
   //     posts: {
-  //       create: { title: "Hello World" },
+  //       create: { title: "Hello World, love Benjamin" },
   //     },
   //     profile: {
-  //       create: { bio: "I like turtles" },
+  //       create: { bio: "I like cats" },
   //     },
   //   },
   // });
